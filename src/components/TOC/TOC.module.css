@@ -1,0 +1,141 @@
+.tocContainer {
+  width: 360px;
+  background: #fff;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+}
+
+.searchForm {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  background: #fafafa;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+  border-color: #007acc;
+  box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.1);
+}
+
+.searchButton {
+  padding: 8px 16px;
+  background: #007acc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.searchButton:hover {
+  background: #005a9e;
+}
+
+.searchButton:active {
+  background: #004080;
+}
+
+.filteringLoader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  color: #666;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e9ecef;
+  border-top: 2px solid #007acc;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.searchInfo {
+  padding: 8px 12px;
+  background: #e3f2fd;
+  border-bottom: 1px solid #bbdefb;
+  font-size: 13px;
+  color: #1976d2;
+}
+
+.noResults {
+  padding: 16px 12px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  background: #f8f9fa;
+}
+
+.toc {
+  flex: 1;
+  padding: 8px;
+  overflow-y: auto;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+  padding: 4px;
+  border-radius: 4px;
+  border: 0;
+  background: transparent;
+}
+
+.active {
+  background: #e6e6e6 !important;
+}
+
+.header:hover {
+  background: #f6f6f6 !important;
+}
+
+.icon {
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.children {
+  overflow: hidden;
+}
+
+.anchor {
+  display: block;
+  margin-left: 24px;
+  font-size: 0.9em;
+  color: #555;
+}

@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 
 import App from "./App.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { reportWebVitals } from "./utils/reportWebVitals.ts";
 
 import "./main.css";
 
@@ -26,12 +27,14 @@ const queryClient = new QueryClient({
   },
 });
 
-enableMocking().then(() =>
+enableMocking().then(() => {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
         <App />
       </QueryClientProvider>
     </StrictMode>
-  )
-);
+  );
+
+  reportWebVitals();
+});

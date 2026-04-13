@@ -2,6 +2,8 @@ import { memo, useCallback, useEffect, useId, useMemo, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import clsx from "clsx";
 import { type TOCNode } from "./types";
+import { HighlightMatch } from "./HighlightMatch";
+import { INDENT_PX } from "./constants";
 import styles from "./TOC.module.css";
 
 interface Props {
@@ -131,7 +133,7 @@ const ToCItemComponent = ({
           expanded && styles.expanded,
           hasChildren && styles.hasChildren
         )}
-        style={{ paddingLeft: `${node.level * 12}px` }}
+        style={{ paddingLeft: `${node.level * INDENT_PX}px` }}
         onClick={onHeaderClick}
       >
         {hasChildren && (
@@ -209,30 +211,6 @@ const ToCItemComponent = ({
         </ul>
       )}
     </li>
-  );
-};
-
-const HighlightMatch = ({ text, query }: { text: string; query: string }) => {
-  if (!query) return <>{text}</>;
-
-  const regex = new RegExp(
-    `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-    "gi"
-  );
-  const parts = text.split(regex);
-
-  return (
-    <>
-      {parts.map((part, i) =>
-        regex.test(part) ? (
-          <mark key={i} className={styles.highlight}>
-            {part}
-          </mark>
-        ) : (
-          part
-        )
-      )}
-    </>
   );
 };
 

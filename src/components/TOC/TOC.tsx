@@ -3,6 +3,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { TOCRow } from "./TOCRow";
 import Loader from "../Loader/Loader";
+import { ITEM_HEIGHT_PX, VIRTUALIZER_OVERSCAN } from "./constants";
 import styles from "./TOC.module.css";
 import { useTOCData } from "./hooks/useTOCData";
 import { useTOCSearch } from "./hooks/useTOCSearch";
@@ -35,8 +36,8 @@ export const ToC = () => {
   const virtualizer = useVirtualizer({
     count: flatNodes.length,
     getScrollElement: () => scrollRef.current,
-    estimateSize: () => 28,
-    overscan: 10,
+    estimateSize: () => ITEM_HEIGHT_PX,
+    overscan: VIRTUALIZER_OVERSCAN,
   });
 
   const [focusedId, setFocusedId] = useState<string | null>(null);

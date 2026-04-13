@@ -1,6 +1,8 @@
 import { memo, useCallback } from "react";
 import clsx from "clsx";
 import type { FlatNode } from "./hooks/useFlattenedTree";
+import { HighlightMatch } from "./HighlightMatch";
+import { INDENT_PX, ROW_PADDING_LEFT_BASE_PX } from "./constants";
 import styles from "./TOC.module.css";
 
 interface Props {
@@ -106,7 +108,9 @@ const TOCRowComponent = ({
           isExpanded && styles.expanded,
           hasChildren && styles.hasChildren
         )}
-        style={{ paddingLeft: `${depth * 12 + 4}px` }}
+        style={{
+          paddingLeft: `${depth * INDENT_PX + ROW_PADDING_LEFT_BASE_PX}px`,
+        }}
         onClick={handleClick}
       >
         {hasChildren && (
@@ -143,30 +147,6 @@ const TOCRowComponent = ({
         </ul>
       )}
     </li>
-  );
-};
-
-const HighlightMatch = ({ text, query }: { text: string; query: string }) => {
-  if (!query) return <>{text}</>;
-
-  const regex = new RegExp(
-    `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-    "gi"
-  );
-  const parts = text.split(regex);
-
-  return (
-    <>
-      {parts.map((part, i) =>
-        regex.test(part) ? (
-          <mark key={i} className={styles.highlight}>
-            {part}
-          </mark>
-        ) : (
-          part
-        )
-      )}
-    </>
   );
 };
 

@@ -1,5 +1,6 @@
 import { Component } from "react";
 import type { ErrorInfo, ReactNode } from "react";
+import styles from "./ErrorBoundary.module.css";
 
 interface Props {
   children: ReactNode;
@@ -33,21 +34,12 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div role="alert" style={{ padding: 24, textAlign: "center" }}>
+        <div role="alert" className={styles.container}>
           <h2>Something went wrong</h2>
-          <p style={{ color: "#666", marginBottom: 16 }}>
+          <p className={styles.message}>
             {this.state.error?.message ?? "An unexpected error occurred."}
           </p>
-          <button
-            onClick={this.handleReset}
-            style={{
-              padding: "8px 16px",
-              border: "1px solid #ccc",
-              borderRadius: 4,
-              cursor: "pointer",
-              background: "#fff",
-            }}
-          >
+          <button onClick={this.handleReset} className={styles.button}>
             Try again
           </button>
         </div>

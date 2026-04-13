@@ -6,7 +6,10 @@ export function buildTree(data: TOCData): TOCNode[] {
   const pageMap = new Map(Object.entries(pages));
 
   const buildNode = (id: string): TOCNode => {
-    const page = pageMap.get(id)!;
+    const page = pageMap.get(id);
+    if (!page) {
+      throw new Error(`Page with id "${id}" not found in TOC data`);
+    }
 
     return {
       ...page,

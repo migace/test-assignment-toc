@@ -1,147 +1,174 @@
-# TOC (Table of Contents) Application
+# TOC (Table of Contents)
 
-A React-based Table of Contents application built with TypeScript, Vite, and modern web technologies. This application provides a hierarchical navigation interface with search functionality, expandable/collapsible sections, and smooth animations.
+[![CI](https://github.com/migace/test-assignment-toc/actions/workflows/ci.yml/badge.svg)](https://github.com/migace/test-assignment-toc/actions/workflows/ci.yml)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)
+![React](https://img.shields.io/badge/React-19-61dafb)
+![a11y](https://img.shields.io/badge/a11y-WAI--ARIA%20Tree-green)
 
-## Features
+A high-performance, accessible Table of Contents component built with React 19 and TypeScript. Features virtual scrolling for large datasets, full WAI-ARIA tree pattern compliance, and cross-browser keyboard navigation.
 
-- **Hierarchical Navigation**: Multi-level table of contents with expandable/collapsible sections
-- **Search Functionality**: Filter TOC items by typing search queries
-- **Smooth Animations**: Framer Motion animations for expanding/collapsing sections
-- **Responsive Design**: Clean, modern UI with proper styling
-- **TypeScript**: Full type safety and better development experience
-- **React Query**: Efficient data fetching and caching
+## Key Technical Decisions
+
+| Decision                                             | Why                                                                                       | ADR                                                       |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| **Virtual scrolling** with `@tanstack/react-virtual` | Constant memory usage regardless of tree size; <16ms frame times for 500+ items           | [ADR-001](docs/adr/001-virtualization-for-large-lists.md) |
+| **`useTransition`** for search filtering             | Non-blocking search — input stays responsive while React yields to high-priority updates  | [ADR-002](docs/adr/002-use-transition-for-search.md)      |
+| **CSS Modules** with custom properties               | Zero-runtime styling, automatic dark mode via `prefers-color-scheme`, scoped class names  | [ADR-003](docs/adr/003-css-modules-over-css-in-js.md)     |
+| **React Query** for server state                     | Built-in caching (5min stale / 24h GC), `select` for data transformation, automatic retry | [ADR-004](docs/adr/004-react-query-for-data-fetching.md)  |
+| **WAI-ARIA Tree Pattern**                            | Full keyboard navigation, screen reader support, roving tabindex focus management         | [ADR-005](docs/adr/005-accessibility-first-design.md)     |
+| **Zod** for API validation                           | Runtime type safety at system boundaries, preventing silent data contract violations      | —                                                         |
+
+## Performance
+
+- **Virtualization**: Only visible items are mounted in the DOM — handles 1000+ nodes without frame drops
+- **Memoization**: `memo()` on row components + `useMemo` for tree flattening and filtering
+- **Caching**: React Query with `staleTime: 5min` prevents redundant API calls
+- **Non-blocking search**: `useTransition` keeps UI responsive during heavy tree filtering
+- **Web Vitals**: Instrumented with `web-vitals` for CLS, FCP, LCP, and TTFB monitoring in development
+
+## Accessibility
+
+Full [WAI-ARIA Treeview Pattern](https://www.w3.org/WAI/ARIA/apd/patterns/treeview/) implementation:
+
+- **Keyboard navigation**: ArrowUp/Down, ArrowRight/Left (expand/collapse), Home/End, Enter/Space
+- **Roving tabindex**: Focus management without `aria-activedescendant`
+- **ARIA attributes**: `role="tree/treeitem"`, `aria-expanded`, `aria-selected`, `aria-level`, `aria-setsize`, `aria-posinset`
+- **Landmarks**: `role="search"`, `role="navigation"` with labels
+- **Reduced motion**: Respects `prefers-reduced-motion` via Framer Motion's `useReducedMotion`
+- **Dark mode**: Automatic via `prefers-color-scheme` with semantic CSS variables
+- **Automated audits**: `vitest-axe` tests + Lighthouse CI with 95% a11y threshold
 
 ## Tech Stack
 
-- **Frontend**: React 19 + TypeScript
-- **Build Tool**: Vite
-- **Styling**: CSS Modules
-- **Animations**: Framer Motion
-- **Data Fetching**: TanStack React Query
-- **Testing**: Vitest + React Testing Library
-- **Mocking**: MSW (Mock Service Worker)
+| Category       | Technology                                                     |
+| -------------- | -------------------------------------------------------------- |
+| Framework      | React 19 + TypeScript (strict mode)                            |
+| Build          | Vite 8                                                         |
+| Data fetching  | TanStack React Query                                           |
+| Virtualization | TanStack React Virtual                                         |
+| Animations     | Framer Motion                                                  |
+| Styling        | CSS Modules + CSS custom properties                            |
+| Validation     | Zod                                                            |
+| Unit tests     | Vitest + React Testing Library + vitest-axe                    |
+| E2E tests      | Playwright (Chrome, Firefox, Safari)                           |
+| Component docs | Storybook 10                                                   |
+| API mocking    | MSW (Mock Service Worker)                                      |
+| CI/CD          | GitHub Actions (lint, test, e2e, Lighthouse, Storybook deploy) |
+| Quality        | ESLint + Prettier + Husky + lint-staged                        |
 
-## Prerequisites
+## Getting Started
 
-Before running this project, make sure you have the following installed:
+### Prerequisites
 
-- **Node.js** (version 18 or higher)
-- **npm** or **yarn** package manager
+- Node.js 22+
+- npm 10+
 
-## Installation
-
-1. **Clone the repository** (if you haven't already):
-
-   ```bash
-   git clone https://github.com/migace/test-assignment-toc.git
-   cd test-assignment-toc
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-## Running the Project
-
-### Development Mode
-
-To start the development server:
+### Installation
 
 ```bash
-npm run dev
+git clone https://github.com/migace/test-assignment-toc.git
+cd test-assignment-toc
+npm install
 ```
 
-The application will be available at `http://localhost:5173` (or another port if 5173 is busy).
-
-### Build for Production
-
-To create a production build:
+### Development
 
 ```bash
-npm run build
+npm run dev          # Start dev server at http://localhost:5173
+npm run storybook    # Component explorer at http://localhost:6006
 ```
 
-The built files will be in the `dist` directory.
-
-### Preview Production Build
-
-To preview the production build locally:
+### Testing
 
 ```bash
-npm run preview
+npm run test:run       # Unit tests (single run)
+npm run test:coverage  # Unit tests with coverage report
+npm run test:e2e       # Playwright E2E (Chrome + Firefox + Safari)
+npm run test:e2e:ui    # Playwright with interactive UI
 ```
 
-## Testing
-
-### Run All Tests
+### Build
 
 ```bash
-npm test
-```
-
-### Run Tests in Watch Mode
-
-```bash
-npm run test:ui
-```
-
-### Run Tests Once
-
-```bash
-npm run test:run
-```
-
-### Run Specific Test File
-
-```bash
-npm test -- --run src/components/TOC/TOCItem.test.tsx
+npm run build     # TypeScript check + Vite production build
+npm run preview   # Preview production build locally
 ```
 
 ## Project Structure
 
 ```
 src/
-├── api/           # API functions
-├── components/    # React components
-│   ├── TOC/      # Table of Contents components
-│   └── Loader/   # Loading component
-├── mocks/         # Mock data and service worker
-├── utils/         # Utility functions (buildTree)
-└── test/          # Test setup and configuration
+  api/                  — API client + Zod validation schemas
+  components/
+    TOC/
+      hooks/            — Custom hooks (useTOCData, useTOCSearch, useExpandedState, useFlattenedTree)
+      utils/            — Tree filtering with tests
+      TOC.tsx           — Main component (virtualizer, search, navigation)
+      TOCRow.tsx        — Virtualized row (flat list rendering)
+      TOCItem.tsx       — Recursive tree item (non-virtualized, with animations)
+      HighlightMatch.tsx — Search result highlighting
+      constants.ts      — Shared layout constants
+      *.test.tsx        — Colocated tests
+      *.stories.tsx     — Storybook stories
+    ErrorBoundary/      — Error boundary with CSS Modules
+    Loader/             — Loading indicator
+  utils/                — buildTree, normalize, reportWebVitals
+  mocks/                — MSW handlers + mock data
+  test/                 — Test setup (jest-dom, vitest-axe matchers)
+docs/
+  adr/                  — Architecture Decision Records
+e2e/                    — Playwright E2E tests
 ```
-
-## Key Components
-
-- **`TOC.tsx`**: Main TOC component with search functionality
-- **`TOCItem.tsx`**: Individual TOC item with expand/collapse
-- **`buildTree.ts`**: Utility to transform flat data into hierarchical structure
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run test` - Run tests in watch mode
-- `npm run test:ui` - Run tests with UI
-- `npm run test:run` - Run tests once
-- `npm run lint` - Run ESLint
+| Script                    | Description               |
+| ------------------------- | ------------------------- |
+| `npm run dev`             | Start Vite dev server     |
+| `npm run build`           | Production build          |
+| `npm run preview`         | Preview production build  |
+| `npm run lint`            | ESLint check              |
+| `npm run format`          | Prettier format all files |
+| `npm run format:check`    | Prettier check            |
+| `npm run test`            | Vitest in watch mode      |
+| `npm run test:run`        | Single test run           |
+| `npm run test:coverage`   | Coverage report           |
+| `npm run test:ui`         | Vitest with browser UI    |
+| `npm run test:e2e`        | Playwright E2E tests      |
+| `npm run test:e2e:ui`     | Playwright interactive UI |
+| `npm run storybook`       | Storybook dev server      |
+| `npm run build-storybook` | Build static Storybook    |
 
-## Development
+## CI/CD Pipeline
 
-The project uses:
+The GitHub Actions pipeline runs on every push and PR:
 
-- **ESLint** for code quality
-- **TypeScript** for type safety
-- **CSS Modules** for scoped styling
-- **Vitest** for fast testing
+```
+Lint ──────────────┐
+Unit Tests ────────┼── Build ── Deploy Storybook (main only)
+E2E Tests ─────────┘
+Lighthouse Audit (parallel)
+```
+
+- **Lint**: TypeScript type check + ESLint + Prettier
+- **Unit Tests**: Vitest with coverage report (80% threshold)
+- **E2E Tests**: Playwright across Chrome, Firefox, and Safari
+- **Lighthouse**: Performance (90%), Accessibility (95%), Best Practices (90%), SEO (90%)
+- **Storybook**: Auto-deployed to GitHub Pages on `main`
 
 ## Contributing
 
-1. Make sure all tests pass
-2. Follow the existing code style
-3. Add tests for new functionality
-4. Update documentation as needed
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines, code standards, and the contribution workflow.
+
+## Architecture Decisions
+
+Key decisions are documented as [Architecture Decision Records](docs/adr/):
+
+- [ADR-001: Virtualization for Large Lists](docs/adr/001-virtualization-for-large-lists.md)
+- [ADR-002: useTransition for Non-Blocking Search](docs/adr/002-use-transition-for-search.md)
+- [ADR-003: CSS Modules over CSS-in-JS](docs/adr/003-css-modules-over-css-in-js.md)
+- [ADR-004: React Query for Server State Management](docs/adr/004-react-query-for-data-fetching.md)
+- [ADR-005: Accessibility-First Design](docs/adr/005-accessibility-first-design.md)
 
 ## License
 

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchTOC } from "../../api/tocApi";
 import { buildTree } from "../../utils/buildTree";
 
-import { ToCItem } from "./ToCItem";
+import { ToCItem } from "./TOCItem";
 import Loader from "../Loader/Loader";
 import styles from "./TOC.module.css";
 import { filterTree } from "./utils/filterTree";

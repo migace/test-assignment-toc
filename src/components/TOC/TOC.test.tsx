@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ToC } from "./ToC";
+import { ToC } from "./TOC";
 import { type TOCData, type TOCNode } from "./types";
 
 vi.mock("../../api/tocApi", () => ({
@@ -17,7 +17,7 @@ vi.mock("../Loader/Loader", () => ({
 }));
 
 vi.mock("./TOCItem", () => ({
-  default: ({
+  ToCItem: ({
     node,
     activeId,
     onActivate,

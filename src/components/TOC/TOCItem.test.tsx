@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { ToCItem } from "./ToCItem";
+import { ToCItem } from "./TOCItem";
 import { type TOCNode } from "./types";
 
 vi.mock("framer-motion", () => ({
@@ -21,6 +21,7 @@ vi.mock("framer-motion", () => ({
     }) => <span {...props}>{children}</span>,
   },
   AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+  useReducedMotion: () => false,
 }));
 
 describe("TOCItem", () => {
@@ -55,13 +56,11 @@ describe("TOCItem", () => {
 
     const titleElement = screen.getByText("Test Page");
 
-    let containerDiv = titleElement.parentElement;
-    while (containerDiv && !containerDiv.style.marginLeft) {
-      containerDiv = containerDiv.parentElement;
-    }
+    const itemDiv = titleElement.closest("[data-level]") as HTMLElement | null;
 
-    expect(containerDiv).toBeTruthy();
-    expect(containerDiv?.style.marginLeft).toBe("24px");
+    expect(itemDiv).toBeTruthy();
+    expect(itemDiv?.dataset.level).toBe("2");
+    expect(itemDiv?.style.getPropertyValue("--indent")).toBe("24px");
   });
 
   it("should call onActivate when header is clicked", () => {

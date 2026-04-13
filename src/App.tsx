@@ -1,4 +1,4 @@
-import { ToC } from "./components/ToC";
+import { ToC } from "./components/TOC";
 
 function App() {
   return <ToC />;

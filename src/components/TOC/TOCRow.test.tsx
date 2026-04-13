@@ -34,8 +34,8 @@ const makeFlatNode = (
 });
 
 const defaultProps = {
-  activeId: null,
-  focusedId: null,
+  activeId: null as string | null,
+  focusedId: null as string | null,
   onActivate: vi.fn(),
   onToggle: vi.fn(),
   onFocusNode: vi.fn(),

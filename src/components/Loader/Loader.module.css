@@ -2,5 +2,11 @@
   padding: 16px;
   text-align: center;
   font-size: 14px;
-  color: #888;
+  color: #595959;
+}
+
+@media (prefers-color-scheme: dark) {
+  .loader {
+    color: #a0a0a0;
+  }
 }

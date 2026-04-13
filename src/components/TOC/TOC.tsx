@@ -147,6 +147,7 @@ export const ToC = () => {
           style={{ position: "relative" }}
         >
           <div
+            role="none"
             style={{
               height: `${virtualizer.getTotalSize()}px`,
               width: "100%",
@@ -157,6 +158,7 @@ export const ToC = () => {
               const flatNode = flatNodes[virtualItem.index];
               return (
                 <div
+                  role="none"
                   key={flatNode.node.id}
                   style={{
                     position: "absolute",

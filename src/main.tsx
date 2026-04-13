@@ -26,14 +26,16 @@ const queryClient = new QueryClient({
   },
 });
 
-enableMocking().then(() => {
-  createRoot(document.getElementById("root")!).render(
-    <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <App />
-      </QueryClientProvider>
-    </StrictMode>
-  );
+enableMocking()
+  .catch(() => {})
+  .then(() => {
+    createRoot(document.getElementById("root")!).render(
+      <StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
+      </StrictMode>
+    );
 
-  reportWebVitals();
-});
+    reportWebVitals();
+  });

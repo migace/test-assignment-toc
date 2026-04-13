@@ -11,7 +11,7 @@ const AnchorSchema = z.object({
 const PageSchema = z.object({
   id: z.string(),
   title: z.string(),
-  url: z.string(),
+  url: z.string().optional(),
   level: z.number(),
   parentId: z.string().optional(),
   pages: z.array(z.string()).optional(),
@@ -22,7 +22,7 @@ const PageSchema = z.object({
 export const TOCDataSchema = z.object({
   entities: z.object({
     pages: z.record(z.string(), PageSchema),
-    anchors: z.record(z.string(), AnchorSchema),
+    anchors: z.record(z.string(), AnchorSchema).optional(),
   }),
   topLevelIds: z.array(z.string()),
 });

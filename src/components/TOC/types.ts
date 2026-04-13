@@ -9,7 +9,7 @@ export interface Anchor {
 export interface Page {
   id: string;
   title: string;
-  url: string;
+  url?: string;
   level: number;
   parentId?: string;
   pages?: string[];
@@ -20,7 +20,7 @@ export interface Page {
 export interface TOCData {
   entities: {
     pages: Record<string, Page>;
-    anchors: Record<string, Anchor>;
+    anchors?: Record<string, Anchor>;
   };
   topLevelIds: string[];
 }

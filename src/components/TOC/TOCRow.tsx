@@ -97,6 +97,7 @@ const TOCRowComponent = ({
       tabIndex={isFocused ? 0 : -1}
       className={styles.item}
       onKeyDown={handleKeyDown}
+      onFocus={() => onFocusNode(node.id)}
       ref={(el) => {
         if (isFocused && el) el.focus();
       }}

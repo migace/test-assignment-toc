@@ -1,67 +1,94 @@
-import { useState, useMemo, useTransition, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { fetchTOC } from "../../api/tocApi";
-import { buildTree } from "../../utils/buildTree";
+import { useRef, useState, useCallback } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
-import { ToCItem } from "./TOCItem";
+import { TOCRow } from "./TOCRow";
 import Loader from "../Loader/Loader";
 import styles from "./TOC.module.css";
-import { filterTree } from "./utils/filterTree";
+import { useTOCData } from "./hooks/useTOCData";
+import { useTOCSearch } from "./hooks/useTOCSearch";
+import { useFlattenedTree } from "./hooks/useFlattenedTree";
+import { useExpandedState } from "./hooks/useExpandedState";
+import type { FlatNode } from "./hooks/useFlattenedTree";
 
 export const ToC = () => {
-  const {
-    data: tree = [],
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["toc"],
-    queryFn: fetchTOC,
-    select: (raw) => buildTree(raw),
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: tree = [], isLoading, error, refetch } = useTOCData();
 
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [appliedQuery, setAppliedQuery] = useState("");
-  const [isPending, startTransition] = useTransition();
 
-  const { tree: filteredTree, count } = useMemo(
-    () => filterTree({ nodes: tree, query: appliedQuery }),
-    [tree, appliedQuery]
-  );
+  const {
+    searchQuery,
+    appliedQuery,
+    isPending,
+    filteredTree,
+    count,
+    handleSearchChange,
+    handleSearchSubmit,
+    handleClear,
+  } = useTOCSearch(tree);
 
-  const handleSearchChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchQuery(e.target.value);
-    },
-    []
-  );
+  const { expandedIds, toggle } = useExpandedState(activeId, filteredTree);
 
-  const handleSearchSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
+  const flatNodes = useFlattenedTree(filteredTree, expandedIds);
 
-      startTransition(() => {
-        setAppliedQuery(searchQuery.trim());
-      });
-    },
-    [searchQuery]
-  );
+  const scrollRef = useRef<HTMLUListElement>(null);
 
-  const handleClear = useCallback(() => {
-    startTransition(() => {
-      setSearchQuery("");
-      setAppliedQuery("");
-    });
+  const virtualizer = useVirtualizer({
+    count: flatNodes.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 28,
+    overscan: 10,
+  });
+
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+
+  const onFocusNode = useCallback((id: string) => {
+    setFocusedId(id);
   }, []);
+
+  const onMoveFocus = useCallback(
+    (id: string, direction: "up" | "down" | "home" | "end" | "parent") => {
+      if (direction === "parent") {
+        const current = flatNodes.find((fn) => fn.node.id === id);
+        if (current?.parentId) {
+          setFocusedId(current.parentId);
+        }
+        return;
+      }
+
+      if (flatNodes.length === 0) return;
+
+      if (direction === "home") {
+        setFocusedId(flatNodes[0].node.id);
+        virtualizer.scrollToIndex(0);
+        return;
+      }
+      if (direction === "end") {
+        setFocusedId(flatNodes[flatNodes.length - 1].node.id);
+        virtualizer.scrollToIndex(flatNodes.length - 1);
+        return;
+      }
+
+      const idx = flatNodes.findIndex((fn: FlatNode) => fn.node.id === id);
+      if (idx === -1) return;
+
+      if (direction === "down" && idx < flatNodes.length - 1) {
+        setFocusedId(flatNodes[idx + 1].node.id);
+        virtualizer.scrollToIndex(idx + 1);
+      } else if (direction === "up" && idx > 0) {
+        setFocusedId(flatNodes[idx - 1].node.id);
+        virtualizer.scrollToIndex(idx - 1);
+      }
+    },
+    [flatNodes, virtualizer]
+  );
 
   if (isLoading) return <Loader />;
 
   if (error) {
     return (
-      <div className={styles.error}>
+      <div className={styles.error} role="alert">
         <p>Failed to load the table of contents.</p>
-        <button onClick={() => location.reload()}>Retry</button>
+        <button onClick={() => refetch()}>Retry</button>
       </div>
     );
   }
@@ -90,8 +117,9 @@ export const ToC = () => {
             type="button"
             onClick={handleClear}
             className={styles.clearButton}
+            aria-label="Clear search"
           >
-            X
+            &times;
           </button>
         )}
       </form>
@@ -105,24 +133,60 @@ export const ToC = () => {
 
       {appliedQuery && !isPending && (
         <div className={styles.searchInfo} aria-live="polite">
-          Found {count} result{count === 1 ? "" : "s"} for “{appliedQuery}”
+          Found {count} result{count === 1 ? "" : "s"} for &ldquo;
+          {appliedQuery}&rdquo;
         </div>
       )}
 
-      <nav className={styles.toc} aria-label="Table of contents">
-        {filteredTree.map((node) => (
-          <ToCItem
-            key={node.id}
-            node={node}
-            activeId={activeId}
-            onActivate={setActiveId}
-          />
-        ))}
+      <nav aria-label="Table of contents">
+        <ul
+          ref={scrollRef}
+          role="tree"
+          className={styles.toc}
+          style={{ position: "relative" }}
+        >
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: "100%",
+              position: "relative",
+            }}
+          >
+            {virtualizer.getVirtualItems().map((virtualItem) => {
+              const flatNode = flatNodes[virtualItem.index];
+              return (
+                <div
+                  key={flatNode.node.id}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    transform: `translateY(${virtualItem.start}px)`,
+                  }}
+                  ref={virtualizer.measureElement}
+                  data-index={virtualItem.index}
+                >
+                  <TOCRow
+                    flatNode={flatNode}
+                    activeId={activeId}
+                    focusedId={focusedId}
+                    onActivate={setActiveId}
+                    onToggle={toggle}
+                    onFocusNode={onFocusNode}
+                    onMoveFocus={onMoveFocus}
+                    highlightQuery={appliedQuery || undefined}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </ul>
       </nav>
 
-      {appliedQuery && !isPending && filteredTree.length === 0 && (
+      {appliedQuery && !isPending && flatNodes.length === 0 && (
         <div className={styles.noResults} aria-live="polite">
-          No results found for “{appliedQuery}”
+          No results found for &ldquo;{appliedQuery}&rdquo;
         </div>
       )}
     </div>

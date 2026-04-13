@@ -36,10 +36,5 @@ export const filterTree = ({
 
   const filtered = nodes.map(visit).filter((n): n is TOCNode => Boolean(n));
 
-  const countDescendants = (n: TOCNode) => {
-    for (const c of n.children) countDescendants(c);
-  };
-  filtered.forEach(countDescendants);
-
   return { tree: filtered, count: total };
 };

@@ -16,36 +16,47 @@ vi.mock("../Loader/Loader", () => ({
   default: () => <div data-testid="loader">Loading TOC...</div>,
 }));
 
-vi.mock("./TOCItem", () => ({
-  ToCItem: ({
-    node,
+vi.mock("./TOCRow", () => ({
+  TOCRow: ({
+    flatNode,
     activeId,
     onActivate,
   }: {
-    node: TOCNode;
+    flatNode: { node: TOCNode };
     activeId: string | null;
     onActivate: (id: string) => void;
-  }) => {
-    const renderChildren = (children: TOCNode[]) => {
-      return children?.map((child: TOCNode) => (
-        <div key={child.id} data-testid={`toc-item-${child.id}`}>
-          {child.title}
-          {renderChildren(child.children)}
-        </div>
-      ));
-    };
+  }) => (
+    <li
+      data-testid={`toc-item-${flatNode.node.id}`}
+      onClick={() => onActivate(flatNode.node.id)}
+      className={activeId === flatNode.node.id ? "active" : ""}
+    >
+      {flatNode.node.title}
+    </li>
+  ),
+}));
 
-    return (
-      <div
-        data-testid={`toc-item-${node.id}`}
-        onClick={() => onActivate(node.id)}
-        className={activeId === node.id ? "active" : ""}
-      >
-        {node.title}
-        {renderChildren(node.children)}
-      </div>
-    );
-  },
+// Mock @tanstack/react-virtual to bypass layout requirements
+vi.mock("@tanstack/react-virtual", () => ({
+  useVirtualizer: ({
+    count,
+  }: {
+    count: number;
+    getScrollElement: () => HTMLElement | null;
+    estimateSize: () => number;
+    overscan: number;
+  }) => ({
+    getVirtualItems: () =>
+      Array.from({ length: count }, (_, i) => ({
+        index: i,
+        start: i * 28,
+        size: 28,
+        key: i,
+      })),
+    getTotalSize: () => count * 28,
+    scrollToIndex: vi.fn(),
+    measureElement: vi.fn(),
+  }),
 }));
 
 import { fetchTOC } from "../../api/tocApi";
@@ -155,19 +166,6 @@ describe("ToC", () => {
     expect(screen.getByTestId("toc-item-page2")).toBeDefined();
   });
 
-  it("should render nested TOC items", async () => {
-    vi.mocked(fetchTOC).mockResolvedValue(mockTOCData);
-    vi.mocked(buildTree).mockReturnValue(mockTreeData);
-
-    render(<ToC />, { wrapper: createWrapper() });
-
-    await waitFor(() => {
-      expect(screen.getByText("Page 1.1")).toBeDefined();
-    });
-
-    expect(screen.getByTestId("toc-item-page1-1")).toBeDefined();
-  });
-
   it("should call buildTree with fetched data", async () => {
     vi.mocked(fetchTOC).mockResolvedValue(mockTOCData);
     vi.mocked(buildTree).mockReturnValue(mockTreeData);
@@ -191,14 +189,18 @@ describe("ToC", () => {
   });
 
   it("should handle single TOC item", async () => {
-    const singleItemData = {
-      ...mockTOCData,
-      topLevelIds: ["page1"],
-    };
+    const singleTreeData: TOCNode[] = [
+      {
+        id: "page1",
+        title: "Page 1",
+        url: "page1.html",
+        level: 0,
+        children: [],
+        anchors: [],
+      },
+    ];
 
-    const singleTreeData = [mockTreeData[0]];
-
-    vi.mocked(fetchTOC).mockResolvedValue(singleItemData);
+    vi.mocked(fetchTOC).mockResolvedValue(mockTOCData);
     vi.mocked(buildTree).mockReturnValue(singleTreeData);
 
     render(<ToC />, { wrapper: createWrapper() });
@@ -207,12 +209,9 @@ describe("ToC", () => {
       expect(screen.getByText("Page 1")).toBeDefined();
       expect(screen.queryByText("Page 2")).toBeNull();
     });
-
-    expect(screen.getByTestId("toc-item-page1")).toBeDefined();
-    expect(screen.queryByTestId("toc-item-page2")).toBeNull();
   });
 
-  it("should render with correct CSS class", async () => {
+  it("should render with navigation landmark", async () => {
     vi.mocked(fetchTOC).mockResolvedValue(mockTOCData);
     vi.mocked(buildTree).mockReturnValue(mockTreeData);
 
@@ -221,6 +220,18 @@ describe("ToC", () => {
     await waitFor(() => {
       const navElement = screen.getByRole("navigation");
       expect(navElement).toBeDefined();
+    });
+  });
+
+  it("should render tree role", async () => {
+    vi.mocked(fetchTOC).mockResolvedValue(mockTOCData);
+    vi.mocked(buildTree).mockReturnValue(mockTreeData);
+
+    render(<ToC />, { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      const tree = screen.getByRole("tree");
+      expect(tree).toBeDefined();
     });
   });
 
@@ -233,89 +244,41 @@ describe("ToC", () => {
     expect(screen.getByTestId("loader")).toBeDefined();
   });
 
-  it("should handle undefined data", async () => {
-    vi.mocked(fetchTOC).mockResolvedValue(undefined as unknown as TOCData);
-    vi.mocked(buildTree).mockReturnValue([]);
+  it("should show error state with retry button", async () => {
+    vi.mocked(fetchTOC).mockRejectedValue(new Error("API Error"));
 
     render(<ToC />, { wrapper: createWrapper() });
 
-    expect(screen.getByTestId("loader")).toBeDefined();
+    await waitFor(() => {
+      expect(
+        screen.getByText("Failed to load the table of contents.")
+      ).toBeDefined();
+    });
+
+    expect(screen.getByRole("button", { name: "Retry" })).toBeDefined();
   });
 
-  it("should handle null data", async () => {
-    vi.mocked(fetchTOC).mockResolvedValue(null as unknown as TOCData);
-    vi.mocked(buildTree).mockReturnValue([]);
-
-    render(<ToC />, { wrapper: createWrapper() });
-
-    expect(screen.getByTestId("loader")).toBeDefined();
-  });
-
-  it("should render TOC items with correct props", async () => {
+  it("should have search form with correct role", async () => {
     vi.mocked(fetchTOC).mockResolvedValue(mockTOCData);
     vi.mocked(buildTree).mockReturnValue(mockTreeData);
 
     render(<ToC />, { wrapper: createWrapper() });
 
     await waitFor(() => {
-      const page1Item = screen.getByTestId("toc-item-page1");
-      const page2Item = screen.getByTestId("toc-item-page2");
-
-      expect(page1Item).toBeDefined();
-      expect(page2Item).toBeDefined();
+      const searchForm = screen.getByRole("search");
+      expect(searchForm).toBeDefined();
     });
   });
 
-  it("should handle complex nested structure", async () => {
-    const complexData = {
-      ...mockTOCData,
-      entities: {
-        ...mockTOCData.entities,
-        pages: {
-          ...mockTOCData.entities.pages,
-          "page1-1-1": {
-            id: "page1-1-1",
-            title: "Page 1.1.1",
-            url: "page1-1-1.html",
-            level: 2,
-            children: [],
-            anchors: [],
-          },
-        },
-      },
-    };
-
-    const complexTreeData = [
-      {
-        ...mockTreeData[0],
-        children: [
-          {
-            ...mockTreeData[0].children[0],
-            children: [
-              {
-                id: "page1-1-1",
-                title: "Page 1.1.1",
-                url: "page1-1-1.html",
-                level: 2,
-                children: [],
-                anchors: [],
-              },
-            ],
-          },
-        ],
-      },
-      mockTreeData[1],
-    ];
-
-    vi.mocked(fetchTOC).mockResolvedValue(complexData);
-    vi.mocked(buildTree).mockReturnValue(complexTreeData);
+  it("should render search input with aria-label", async () => {
+    vi.mocked(fetchTOC).mockResolvedValue(mockTOCData);
+    vi.mocked(buildTree).mockReturnValue(mockTreeData);
 
     render(<ToC />, { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(screen.getByText("Page 1.1.1")).toBeDefined();
+      const input = screen.getByLabelText("Search in table of contents");
+      expect(input).toBeDefined();
     });
-
-    expect(screen.getByTestId("toc-item-page1-1-1")).toBeDefined();
   });
 });

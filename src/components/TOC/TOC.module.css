@@ -1,38 +1,88 @@
 .tocContainer {
+  --toc-bg: #ffffff;
+  --toc-bg-secondary: #fafafa;
+  --toc-bg-tertiary: #f8f9fa;
+  --toc-bg-hover: #f6f6f6;
+  --toc-bg-active: #e6e6e6;
+  --toc-bg-info: #e3f2fd;
+  --toc-text: #1a1a1a;
+  --toc-text-secondary: #666666;
+  --toc-text-anchor: #555555;
+  --toc-text-info: #1976d2;
+  --toc-accent: #007acc;
+  --toc-accent-hover: #005a9e;
+  --toc-accent-active: #004080;
+  --toc-border: #dddddd;
+  --toc-border-light: #eeeeee;
+  --toc-border-info: #bbdefb;
+  --toc-highlight: #fff3cd;
+  --toc-spinner-track: #e9ecef;
+  --toc-focus-ring: rgba(0, 122, 204, 0.4);
+  --toc-focus-shadow: rgba(0, 122, 204, 0.1);
+
   width: 360px;
-  background: #fff;
-  border-right: 1px solid #ddd;
+  height: 100vh;
+  background: var(--toc-bg);
+  border-right: 1px solid var(--toc-border);
   display: flex;
   flex-direction: column;
+  color: var(--toc-text);
+}
+
+@media (prefers-color-scheme: dark) {
+  .tocContainer {
+    --toc-bg: #1e1e1e;
+    --toc-bg-secondary: #252526;
+    --toc-bg-tertiary: #2d2d2d;
+    --toc-bg-hover: #2a2d2e;
+    --toc-bg-active: #37373d;
+    --toc-bg-info: #063b49;
+    --toc-text: #cccccc;
+    --toc-text-secondary: #999999;
+    --toc-text-anchor: #aaaaaa;
+    --toc-text-info: #75beff;
+    --toc-accent: #3794ff;
+    --toc-accent-hover: #2b7fd4;
+    --toc-accent-active: #1f6ab5;
+    --toc-border: #3c3c3c;
+    --toc-border-light: #333333;
+    --toc-border-info: #094b5a;
+    --toc-highlight: #5c4b00;
+    --toc-spinner-track: #3c3c3c;
+    --toc-focus-ring: rgba(55, 148, 255, 0.4);
+    --toc-focus-shadow: rgba(55, 148, 255, 0.15);
+  }
 }
 
 .searchForm {
   display: flex;
   gap: 8px;
   padding: 12px;
-  border-bottom: 1px solid #eee;
-  background: #fafafa;
+  border-bottom: 1px solid var(--toc-border-light);
+  background: var(--toc-bg-secondary);
 }
 
 .searchInput {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--toc-border);
   border-radius: 4px;
   font-size: 14px;
   outline: none;
   transition: border-color 0.2s;
+  background: var(--toc-bg);
+  color: var(--toc-text);
 }
 
-.searchInput:focus {
-  border-color: #007acc;
-  box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.1);
+.searchInput:focus-visible {
+  border-color: var(--toc-accent);
+  box-shadow: 0 0 0 2px var(--toc-focus-shadow);
 }
 
 .searchButton {
   padding: 8px 16px;
-  background: #007acc;
-  color: white;
+  background: var(--toc-accent);
+  color: #ffffff;
   border: none;
   border-radius: 4px;
   font-size: 14px;
@@ -41,11 +91,37 @@
 }
 
 .searchButton:hover {
-  background: #005a9e;
+  background: var(--toc-accent-hover);
 }
 
 .searchButton:active {
-  background: #004080;
+  background: var(--toc-accent-active);
+}
+
+.searchButton:focus-visible {
+  outline: 2px solid var(--toc-focus-ring);
+  outline-offset: 2px;
+}
+
+.clearButton {
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid var(--toc-border);
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--toc-text-secondary);
+  line-height: 1;
+  transition: background-color 0.2s;
+}
+
+.clearButton:hover {
+  background: var(--toc-bg-hover);
+}
+
+.clearButton:focus-visible {
+  outline: 2px solid var(--toc-focus-ring);
+  outline-offset: 2px;
 }
 
 .filteringLoader {
@@ -53,17 +129,17 @@
   align-items: center;
   gap: 8px;
   padding: 12px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #eee;
+  background: var(--toc-bg-tertiary);
+  border-bottom: 1px solid var(--toc-border-light);
   font-size: 14px;
-  color: #666;
+  color: var(--toc-text-secondary);
 }
 
 .spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid #e9ecef;
-  border-top: 2px solid #007acc;
+  border: 2px solid var(--toc-spinner-track);
+  border-top: 2px solid var(--toc-accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -79,29 +155,58 @@
 
 .searchInfo {
   padding: 8px 12px;
-  background: #e3f2fd;
-  border-bottom: 1px solid #bbdefb;
+  background: var(--toc-bg-info);
+  border-bottom: 1px solid var(--toc-border-info);
   font-size: 13px;
-  color: #1976d2;
+  color: var(--toc-text-info);
 }
 
 .noResults {
   padding: 16px 12px;
   text-align: center;
-  color: #666;
+  color: var(--toc-text-secondary);
   font-style: italic;
-  background: #f8f9fa;
+  background: var(--toc-bg-tertiary);
+}
+
+.error {
+  padding: 24px;
+  text-align: center;
+  color: var(--toc-text-secondary);
+}
+
+.error button {
+  padding: 8px 16px;
+  border: 1px solid var(--toc-border);
+  border-radius: 4px;
+  cursor: pointer;
+  background: var(--toc-bg);
+  color: var(--toc-text);
+}
+
+.error button:hover {
+  background: var(--toc-bg-hover);
 }
 
 .toc {
   flex: 1;
   padding: 8px;
+  margin: 0;
   overflow-y: auto;
+  list-style: none;
 }
 
 .item {
   display: flex;
   flex-direction: column;
+  list-style: none;
+  outline: none;
+}
+
+.item:focus-visible > .header {
+  outline: 2px solid var(--toc-focus-ring);
+  outline-offset: -2px;
+  border-radius: 4px;
 }
 
 .header {
@@ -114,28 +219,72 @@
   border-radius: 4px;
   border: 0;
   background: transparent;
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  color: inherit;
 }
 
-.active {
-  background: #e6e6e6 !important;
+.header.active {
+  background: var(--toc-bg-active);
 }
 
 .header:hover {
-  background: #f6f6f6 !important;
+  background: var(--toc-bg-hover);
 }
 
 .icon {
   display: inline-block;
   transition: transform 0.2s;
+  flex-shrink: 0;
+  font-size: 10px;
+}
+
+.iconExpanded {
+  transform: rotate(90deg);
+}
+
+.title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .children {
   overflow: hidden;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.anchorList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .anchor {
   display: block;
   margin-left: 24px;
   font-size: 0.9em;
-  color: #555;
+  color: var(--toc-text-anchor);
+  padding: 2px 4px;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.anchor:hover {
+  background: var(--toc-bg-hover);
+}
+
+.anchor:focus-visible {
+  outline: 2px solid var(--toc-focus-ring);
+  outline-offset: -2px;
+}
+
+.highlight {
+  background: var(--toc-highlight);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
 }

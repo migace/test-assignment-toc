@@ -12,6 +12,13 @@ vi.mock("framer-motion", () => ({
       children: React.ReactNode;
       [key: string]: unknown;
     }) => <div {...props}>{children}</div>,
+    ul: ({
+      children,
+      ...props
+    }: {
+      children: React.ReactNode;
+      [key: string]: unknown;
+    }) => <ul {...props}>{children}</ul>,
     span: ({
       children,
       ...props
@@ -36,8 +43,13 @@ describe("TOCItem", () => {
 
   const mockProps = {
     node: mockNode,
-    activeId: null,
+    activeId: null as string | null,
+    focusedId: null as string | null,
     onActivate: vi.fn(),
+    onFocusNode: vi.fn(),
+    onMoveFocus: vi.fn(),
+    setSize: 1,
+    posInSet: 1,
   };
 
   beforeEach(() => {
@@ -54,22 +66,24 @@ describe("TOCItem", () => {
     const nodeWithLevel = { ...mockNode, level: 2 };
     render(<ToCItem {...mockProps} node={nodeWithLevel} />);
 
-    const titleElement = screen.getByText("Test Page");
-
-    const itemDiv = titleElement.closest("[data-level]") as HTMLElement | null;
-
-    expect(itemDiv).toBeTruthy();
-    expect(itemDiv?.dataset.level).toBe("2");
-    expect(itemDiv?.style.getPropertyValue("--indent")).toBe("24px");
+    const item = screen.getByRole("treeitem");
+    expect(item.dataset.level).toBe("2");
   });
 
   it("should call onActivate when header is clicked", () => {
     render(<ToCItem {...mockProps} />);
 
-    const header = screen.getByText("Test Page");
-    fireEvent.click(header);
+    fireEvent.click(screen.getByText("Test Page"));
 
     expect(mockProps.onActivate).toHaveBeenCalledWith("test-page");
+  });
+
+  it("should call onFocusNode when header is clicked", () => {
+    render(<ToCItem {...mockProps} />);
+
+    fireEvent.click(screen.getByText("Test Page"));
+
+    expect(mockProps.onFocusNode).toHaveBeenCalledWith("test-page");
   });
 
   it("should toggle expanded state when header is clicked", async () => {
@@ -89,17 +103,15 @@ describe("TOCItem", () => {
 
     render(<ToCItem {...mockProps} node={nodeWithChildren} />);
 
-    const header = screen.getByText("Test Page");
-
     expect(screen.queryByText("Child Page")).toBeNull();
 
-    fireEvent.click(header);
+    fireEvent.click(screen.getByText("Test Page"));
 
     await waitFor(() => {
       expect(screen.getByText("Child Page")).toBeDefined();
     });
 
-    fireEvent.click(header);
+    fireEvent.click(screen.getByText("Test Page"));
 
     await waitFor(() => {
       expect(screen.queryByText("Child Page")).toBeNull();
@@ -123,15 +135,13 @@ describe("TOCItem", () => {
 
     render(<ToCItem {...mockProps} node={nodeWithChildren} />);
 
-    const icon = screen.getByText("▶");
-    expect(icon).toBeDefined();
+    expect(screen.getByText("▶")).toBeDefined();
   });
 
   it("should not show expand icon when page has no children", () => {
     render(<ToCItem {...mockProps} />);
 
-    const icon = screen.queryByText("▶");
-    expect(icon).toBeNull();
+    expect(screen.queryByText("▶")).toBeNull();
   });
 
   it("should render children recursively", () => {
@@ -271,22 +281,13 @@ describe("TOCItem", () => {
   });
 
   it("should handle empty children array", () => {
-    const nodeWithEmptyChildren = { ...mockNode, children: [] };
-    render(<ToCItem {...mockProps} node={nodeWithEmptyChildren} />);
+    render(<ToCItem {...mockProps} />);
 
-    const icon = screen.queryByText("▶");
-    expect(icon).toBeNull();
+    expect(screen.queryByText("▶")).toBeNull();
   });
 
   it("should handle empty anchors array", async () => {
-    const nodeWithEmptyAnchors = { ...mockNode, anchors: [] };
-    render(
-      <ToCItem
-        {...mockProps}
-        node={nodeWithEmptyAnchors}
-        activeId="test-page"
-      />
-    );
+    render(<ToCItem {...mockProps} activeId="test-page" />);
 
     fireEvent.click(screen.getByText("Test Page"));
 
@@ -307,5 +308,219 @@ describe("TOCItem", () => {
     render(<ToCItem {...mockProps} node={nodeWithAllProperties} />);
 
     expect(screen.getByText("Test Page")).toBeDefined();
+  });
+
+  describe("WAI-ARIA tree pattern", () => {
+    it("should have role treeitem", () => {
+      render(<ToCItem {...mockProps} />);
+
+      expect(screen.getByRole("treeitem")).toBeDefined();
+    });
+
+    it("should set aria-expanded for items with children", () => {
+      const nodeWithChildren = {
+        ...mockNode,
+        children: [
+          {
+            id: "child",
+            title: "Child",
+            url: "c.html",
+            level: 1,
+            children: [],
+            anchors: [],
+          },
+        ],
+      };
+
+      render(<ToCItem {...mockProps} node={nodeWithChildren} />);
+
+      const item = screen.getByRole("treeitem");
+      expect(item.getAttribute("aria-expanded")).toBe("false");
+    });
+
+    it("should not set aria-expanded for leaf items", () => {
+      render(<ToCItem {...mockProps} />);
+
+      const item = screen.getByRole("treeitem");
+      expect(item.getAttribute("aria-expanded")).toBeNull();
+    });
+
+    it("should set aria-selected for active item", () => {
+      render(<ToCItem {...mockProps} activeId="test-page" />);
+
+      const item = screen.getByRole("treeitem");
+      expect(item.getAttribute("aria-selected")).toBe("true");
+    });
+
+    it("should set aria-level, aria-setsize, aria-posinset", () => {
+      render(<ToCItem {...mockProps} setSize={5} posInSet={3} />);
+
+      const item = screen.getByRole("treeitem");
+      expect(item.getAttribute("aria-level")).toBe("1");
+      expect(item.getAttribute("aria-setsize")).toBe("5");
+      expect(item.getAttribute("aria-posinset")).toBe("3");
+    });
+
+    it("should set tabIndex 0 when focused, -1 otherwise", () => {
+      const { rerender } = render(<ToCItem {...mockProps} focusedId={null} />);
+
+      expect(screen.getByRole("treeitem").tabIndex).toBe(-1);
+
+      rerender(<ToCItem {...mockProps} focusedId="test-page" />);
+
+      expect(screen.getByRole("treeitem").tabIndex).toBe(0);
+    });
+  });
+
+  describe("keyboard navigation", () => {
+    it("should expand on ArrowRight when collapsed with children", () => {
+      const nodeWithChildren = {
+        ...mockNode,
+        children: [
+          {
+            id: "child",
+            title: "Child",
+            url: "c.html",
+            level: 1,
+            children: [],
+            anchors: [],
+          },
+        ],
+      };
+
+      render(<ToCItem {...mockProps} node={nodeWithChildren} />);
+
+      const item = screen.getByRole("treeitem");
+      fireEvent.keyDown(item, { key: "ArrowRight" });
+
+      expect(screen.getByText("Child")).toBeDefined();
+    });
+
+    it("should move focus to first child on ArrowRight when expanded", () => {
+      const nodeWithChildren = {
+        ...mockNode,
+        children: [
+          {
+            id: "child",
+            title: "Child",
+            url: "c.html",
+            level: 1,
+            children: [],
+            anchors: [],
+          },
+        ],
+      };
+
+      render(<ToCItem {...mockProps} node={nodeWithChildren} />);
+
+      const item = screen.getByRole("treeitem", { name: "Test Page" });
+      // First expand
+      fireEvent.keyDown(item, { key: "ArrowRight" });
+      // Then move to child
+      fireEvent.keyDown(item, { key: "ArrowRight" });
+
+      expect(mockProps.onFocusNode).toHaveBeenCalledWith("child");
+    });
+
+    it("should collapse on ArrowLeft when expanded with children", () => {
+      const nodeWithChildren = {
+        ...mockNode,
+        children: [
+          {
+            id: "child",
+            title: "Child",
+            url: "c.html",
+            level: 1,
+            children: [],
+            anchors: [],
+          },
+        ],
+      };
+
+      render(<ToCItem {...mockProps} node={nodeWithChildren} />);
+
+      // Expand first
+      fireEvent.keyDown(screen.getByRole("treeitem"), { key: "ArrowRight" });
+      expect(screen.getByText("Child")).toBeDefined();
+
+      // Collapse
+      fireEvent.keyDown(screen.getByRole("treeitem", { name: "Test Page" }), {
+        key: "ArrowLeft",
+      });
+
+      expect(screen.queryByText("Child")).toBeNull();
+    });
+
+    it("should call onMoveFocus with parent on ArrowLeft when collapsed", () => {
+      render(<ToCItem {...mockProps} />);
+
+      fireEvent.keyDown(screen.getByRole("treeitem"), { key: "ArrowLeft" });
+
+      expect(mockProps.onMoveFocus).toHaveBeenCalledWith("test-page", "parent");
+    });
+
+    it("should call onMoveFocus down on ArrowDown", () => {
+      render(<ToCItem {...mockProps} />);
+
+      fireEvent.keyDown(screen.getByRole("treeitem"), { key: "ArrowDown" });
+
+      expect(mockProps.onMoveFocus).toHaveBeenCalledWith("test-page", "down");
+    });
+
+    it("should call onMoveFocus up on ArrowUp", () => {
+      render(<ToCItem {...mockProps} />);
+
+      fireEvent.keyDown(screen.getByRole("treeitem"), { key: "ArrowUp" });
+
+      expect(mockProps.onMoveFocus).toHaveBeenCalledWith("test-page", "up");
+    });
+
+    it("should call onMoveFocus home on Home", () => {
+      render(<ToCItem {...mockProps} />);
+
+      fireEvent.keyDown(screen.getByRole("treeitem"), { key: "Home" });
+
+      expect(mockProps.onMoveFocus).toHaveBeenCalledWith("test-page", "home");
+    });
+
+    it("should call onMoveFocus end on End", () => {
+      render(<ToCItem {...mockProps} />);
+
+      fireEvent.keyDown(screen.getByRole("treeitem"), { key: "End" });
+
+      expect(mockProps.onMoveFocus).toHaveBeenCalledWith("test-page", "end");
+    });
+
+    it("should activate on Enter", () => {
+      render(<ToCItem {...mockProps} />);
+
+      fireEvent.keyDown(screen.getByRole("treeitem"), { key: "Enter" });
+
+      expect(mockProps.onActivate).toHaveBeenCalledWith("test-page");
+    });
+
+    it("should activate on Space", () => {
+      render(<ToCItem {...mockProps} />);
+
+      fireEvent.keyDown(screen.getByRole("treeitem"), { key: " " });
+
+      expect(mockProps.onActivate).toHaveBeenCalledWith("test-page");
+    });
+  });
+
+  describe("search highlighting", () => {
+    it("should highlight matching text when highlightQuery is set", () => {
+      render(<ToCItem {...mockProps} highlightQuery="Test" />);
+
+      const mark = screen.getByText("Test");
+      expect(mark.tagName).toBe("MARK");
+    });
+
+    it("should not highlight when no query", () => {
+      render(<ToCItem {...mockProps} />);
+
+      const title = screen.getByText("Test Page");
+      expect(title.tagName).not.toBe("MARK");
+    });
   });
 });

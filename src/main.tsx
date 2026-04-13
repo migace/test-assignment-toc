@@ -8,14 +8,13 @@ import { reportWebVitals } from "./utils/reportWebVitals.ts";
 import "./main.css";
 
 async function enableMocking() {
-  if (import.meta.env.MODE !== "development") {
-    return;
-  }
-
   const { worker } = await import("./mocks/browser");
 
   return worker.start({
     onUnhandledRequest: "bypass",
+    serviceWorker: {
+      url: `${import.meta.env.BASE_URL}mockServiceWorker.js`,
+    },
   });
 }
 

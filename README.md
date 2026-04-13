@@ -7,6 +7,8 @@
 
 A high-performance, accessible Table of Contents component built with React 19 and TypeScript. Features virtual scrolling for large datasets, full WAI-ARIA tree pattern compliance, and cross-browser keyboard navigation.
 
+**[Live Demo](https://migace.github.io/test-assignment-toc/)** | **[Storybook](https://migace.github.io/test-assignment-toc/storybook/)**
+
 ## Key Technical Decisions
 
 | Decision                                             | Why                                                                                       | ADR                                                       |
@@ -154,7 +156,7 @@ Lighthouse Audit (parallel)
 - **Unit Tests**: Vitest with coverage report (80% threshold)
 - **E2E Tests**: Playwright across Chrome, Firefox, and Safari
 - **Lighthouse**: Performance (90%), Accessibility (95%), Best Practices (90%), SEO (90%)
-- **Storybook**: Auto-deployed to GitHub Pages on `main`
+- **Deploy**: App + Storybook auto-deployed to GitHub Pages on `main`
 
 ## Contributing
 

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToC } from "./TOC";
 import { type TOCData, type TOCNode } from "./types";
@@ -279,6 +280,94 @@ describe("ToC", () => {
     await waitFor(() => {
       const input = screen.getByLabelText("Search in table of contents");
       expect(input).toBeDefined();
+    });
+  });
+
+  it("should retry fetching data when retry button is clicked", async () => {
+    const user = userEvent.setup();
+    vi.mocked(fetchTOC)
+      .mockRejectedValueOnce(new Error("API Error"))
+      .mockResolvedValueOnce(mockTOCData);
+    vi.mocked(buildTree).mockReturnValue(mockTreeData);
+
+    render(<ToC />, { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Retry" })).toBeDefined();
+    });
+
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Page 1")).toBeDefined();
+    });
+  });
+
+  it("should handle search and show results info", async () => {
+    const user = userEvent.setup();
+    vi.mocked(fetchTOC).mockResolvedValue(mockTOCData);
+    vi.mocked(buildTree).mockReturnValue(mockTreeData);
+
+    render(<ToC />, { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(screen.getByText("Page 1")).toBeDefined();
+    });
+
+    const input = screen.getByLabelText("Search in table of contents");
+    await user.type(input, "Page");
+    await user.click(screen.getByRole("button", { name: "Search" }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Found \d+ result/)).toBeDefined();
+    });
+  });
+
+  it("should show clear button and clear search", async () => {
+    const user = userEvent.setup();
+    vi.mocked(fetchTOC).mockResolvedValue(mockTOCData);
+    vi.mocked(buildTree).mockReturnValue(mockTreeData);
+
+    render(<ToC />, { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(screen.getByText("Page 1")).toBeDefined();
+    });
+
+    const input = screen.getByLabelText("Search in table of contents");
+    await user.type(input, "Page");
+    await user.click(screen.getByRole("button", { name: "Search" }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Clear search" })
+      ).toBeDefined();
+    });
+
+    await user.click(screen.getByRole("button", { name: "Clear search" }));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Found \d+ result/)).toBeNull();
+    });
+  });
+
+  it("should show no results message for empty search", async () => {
+    const user = userEvent.setup();
+    vi.mocked(fetchTOC).mockResolvedValue(mockTOCData);
+    vi.mocked(buildTree).mockReturnValue(mockTreeData);
+
+    render(<ToC />, { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(screen.getByText("Page 1")).toBeDefined();
+    });
+
+    const input = screen.getByLabelText("Search in table of contents");
+    await user.type(input, "xyznonexistent");
+    await user.click(screen.getByRole("button", { name: "Search" }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/No results found/)).toBeDefined();
     });
   });
 });

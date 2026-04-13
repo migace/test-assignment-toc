@@ -19,6 +19,11 @@ export default defineConfig({
         "src/mocks/**",
         "src/vite-env.d.ts",
         "src/main.tsx",
+        "src/App.tsx",
+        "src/**/index.ts",
+        "src/**/types.ts",
+        "src/**/constants.ts",
+        "src/utils/reportWebVitals.ts",
       ],
       thresholds: {
         branches: 80,

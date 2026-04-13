@@ -125,6 +125,6 @@ describe("fetchTOC", () => {
     const result = await fetchTOC();
 
     expect(result.entities.pages.page1.parentId).toBe("root");
-    expect(result.entities.anchors.a1.title).toBe("Anchor");
+    expect(result.entities.anchors?.a1.title).toBe("Anchor");
   });
 });

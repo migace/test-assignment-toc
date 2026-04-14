@@ -107,7 +107,7 @@ test.describe("Table of Contents", () => {
 
   test("should support dark mode", async ({ page }) => {
     await page.emulateMedia({ colorScheme: "dark" });
-    await page.reload();
+    await page.goto("/");
     await page.waitForSelector('[role="tree"]');
 
     const container = page.locator('[class*="tocContainer"]');

@@ -8,8 +8,8 @@ import { reportWebVitals } from "./utils/reportWebVitals.ts";
 import "./main.css";
 
 async function enableMocking() {
-  if (!import.meta.env.DEV) return;
-
+  // Mocks are enabled in production so the live demo on GitHub Pages works
+  // without a real backend API.
   const { worker } = await import("./mocks/browser");
 
   return worker.start({

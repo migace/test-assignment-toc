@@ -27,13 +27,18 @@ export const ToC = () => {
     handleClear,
   } = useTOCSearch(tree);
 
-  const { expandedIds, toggle } = useExpandedState(activeId, filteredTree);
+  const { expandedIds, toggle } = useExpandedState(
+    activeId,
+    filteredTree,
+    Boolean(appliedQuery)
+  );
 
   const flatNodes = useFlattenedTree(filteredTree, expandedIds);
 
   const scrollRef = useRef<HTMLUListElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- virtualizer methods are only used in callbacks, not as deps; safe from stale closure issues here
   const virtualizer = useVirtualizer({
     count: flatNodes.length,
     getScrollElement: () => scrollRef.current,
@@ -42,6 +47,15 @@ export const ToC = () => {
   });
 
   const [focusedId, setFocusedId] = useState<string | null>(null);
+
+  // Ensure focusedId always points to a valid node so the tree is Tab-reachable
+  useEffect(() => {
+    if (flatNodes.length === 0) return;
+    const isValid = flatNodes.some((fn) => fn.node.id === focusedId);
+    if (!isValid) {
+      setFocusedId(flatNodes[0].node.id);
+    }
+  }, [flatNodes, focusedId]);
 
   const onFocusNode = useCallback((id: string) => {
     setFocusedId(id);
@@ -127,6 +141,9 @@ export const ToC = () => {
 
   return (
     <div className={styles.tocContainer}>
+      <a href="#toc-tree" className={styles.skipLink}>
+        Skip to table of contents
+      </a>
       <form
         onSubmit={handleSearchSubmit}
         className={styles.searchForm}
@@ -172,13 +189,8 @@ export const ToC = () => {
         </div>
       )}
 
-      <nav aria-label="Table of contents">
-        <ul
-          ref={scrollRef}
-          role="tree"
-          className={styles.toc}
-          style={{ position: "relative" }}
-        >
+      <nav id="toc-tree" aria-label="Table of contents">
+        <ul ref={scrollRef} role="tree" className={styles.toc}>
           <div
             role="none"
             style={{

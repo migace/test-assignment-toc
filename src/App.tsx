@@ -1,10 +1,17 @@
+import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "./components/ErrorBoundary/ErrorBoundary";
-import { ToC } from "./components/TOC";
+import Loader from "./components/Loader/Loader";
+
+const ToC = lazy(() =>
+  import("./components/TOC").then((m) => ({ default: m.ToC }))
+);
 
 function App() {
   return (
     <ErrorBoundary>
-      <ToC />
+      <Suspense fallback={<Loader />}>
+        <ToC />
+      </Suspense>
     </ErrorBoundary>
   );
 }

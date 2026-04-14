@@ -8,6 +8,8 @@ import { reportWebVitals } from "./utils/reportWebVitals.ts";
 import "./main.css";
 
 async function enableMocking() {
+  if (!import.meta.env.DEV) return;
+
   const { worker } = await import("./mocks/browser");
 
   return worker.start({

@@ -54,6 +54,31 @@
   }
 }
 
+.skipLink {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 100;
+  padding: 8px 16px;
+  background: var(--toc-accent);
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.skipLink:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  margin: 8px 12px;
+  display: inline-block;
+}
+
 .searchForm {
   display: flex;
   gap: 8px;
@@ -194,6 +219,7 @@
   margin: 0;
   overflow-y: auto;
   list-style: none;
+  position: relative;
 }
 
 .item {
@@ -287,4 +313,56 @@
   color: inherit;
   border-radius: 2px;
   padding: 0 1px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .tocContainer {
+    --toc-border: #000000;
+    --toc-border-light: #000000;
+    --toc-focus-ring: #000000;
+    --toc-bg-active: #000080;
+    --toc-highlight: #ffff00;
+  }
+
+  .header.active {
+    color: #ffffff;
+  }
+
+  .searchInput {
+    border-width: 2px;
+  }
+
+  .anchor {
+    text-decoration: underline;
+  }
+}
+
+@media (forced-colors: active) {
+  .header.active {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .item:focus-visible > .header {
+    outline: 2px solid ButtonText;
+  }
+
+  .searchInput:focus-visible {
+    outline: 2px solid ButtonText;
+  }
+
+  .highlight {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .anchor {
+    text-decoration: underline;
+  }
+
+  .skipLink:focus {
+    background: Highlight;
+    color: HighlightText;
+  }
 }

@@ -77,7 +77,7 @@ describe("buildTree", () => {
     expect(result[0].children[1].id).toBe("child2");
   });
 
-  it("should build a tree with anchors", () => {
+  it("should attach anchors to pages with matching URLs", () => {
     const mockData: TOCData = {
       entities: {
         pages: {
@@ -93,16 +93,48 @@ describe("buildTree", () => {
           anchor1: {
             id: "anchor1",
             title: "Anchor 1",
-            url: "page.html#anchor1",
-            anchor: "anchor1",
+            url: "page.html",
+            anchor: "section1",
             level: 1,
           },
           anchor2: {
             id: "anchor2",
             title: "Anchor 2",
-            url: "page.html#anchor2",
-            anchor: "anchor2",
+            url: "page.html",
+            anchor: "section2",
             level: 2,
+          },
+        },
+      },
+      topLevelIds: ["page"],
+    };
+
+    const result = buildTree(mockData);
+
+    expect(result[0].anchors).toHaveLength(2);
+    expect(result[0].anchors[0].title).toBe("Anchor 1");
+    expect(result[0].anchors[1].title).toBe("Anchor 2");
+  });
+
+  it("should not attach anchors with non-matching URLs", () => {
+    const mockData: TOCData = {
+      entities: {
+        pages: {
+          page: {
+            id: "page",
+            title: "Test Page",
+            url: "page.html",
+            level: 0,
+            pages: [],
+          },
+        },
+        anchors: {
+          anchor1: {
+            id: "anchor1",
+            title: "Anchor 1",
+            url: "other-page.html",
+            anchor: "section1",
+            level: 1,
           },
         },
       },

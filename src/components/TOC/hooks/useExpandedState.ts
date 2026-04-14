@@ -1,7 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
 import type { TOCNode } from "../types";
 
-export const useExpandedState = (activeId: string | null, tree: TOCNode[]) => {
+export const useExpandedState = (
+  activeId: string | null,
+  tree: TOCNode[],
+  searchActive = false
+) => {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const toggle = useCallback((id: string) => {
@@ -33,6 +37,26 @@ export const useExpandedState = (activeId: string | null, tree: TOCNode[]) => {
       return next;
     });
   }, []);
+
+  // Auto-expand all parent nodes when search is active so results are visible
+  useEffect(() => {
+    if (!searchActive) return;
+
+    const parentIds = new Set<string>();
+    const collectParents = (nodes: TOCNode[]) => {
+      for (const node of nodes) {
+        if (node.children.length > 0) {
+          parentIds.add(node.id);
+          collectParents(node.children);
+        }
+      }
+    };
+    collectParents(tree);
+
+    if (parentIds.size > 0) {
+      setExpandedIds(parentIds);
+    }
+  }, [searchActive, tree]);
 
   // Auto-expand ancestors of active node
   useEffect(() => {

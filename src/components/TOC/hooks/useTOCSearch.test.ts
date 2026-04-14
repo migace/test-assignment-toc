@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useTOCSearch } from "./useTOCSearch";
 import type { TOCNode } from "../types";
@@ -35,7 +35,7 @@ describe("useTOCSearch", () => {
     expect(result.current.appliedQuery).toBe("");
   });
 
-  it("should update searchQuery on handleSearchChange", () => {
+  it("should filter live on handleSearchChange", () => {
     const { result } = renderHook(() => useTOCSearch(tree));
 
     act(() => {
@@ -45,42 +45,18 @@ describe("useTOCSearch", () => {
     });
 
     expect(result.current.searchQuery).toBe("install");
-    expect(result.current.appliedQuery).toBe("");
-  });
-
-  it("should filter tree on handleSearchSubmit", () => {
-    const { result } = renderHook(() => useTOCSearch(tree));
-
-    act(() => {
-      result.current.handleSearchChange({
-        target: { value: "Installation" },
-      } as React.ChangeEvent<HTMLInputElement>);
-    });
-
-    act(() => {
-      result.current.handleSearchSubmit({
-        preventDefault: () => {},
-      } as React.FormEvent);
-    });
-
-    expect(result.current.appliedQuery).toBe("Installation");
+    expect(result.current.appliedQuery).toBe("install");
     expect(result.current.count).toBe(1);
     expect(result.current.filteredTree.length).toBeGreaterThan(0);
   });
 
-  it("should trim the query on submit", () => {
+  it("should trim the query when filtering live", () => {
     const { result } = renderHook(() => useTOCSearch(tree));
 
     act(() => {
       result.current.handleSearchChange({
         target: { value: "  FAQ  " },
       } as React.ChangeEvent<HTMLInputElement>);
-    });
-
-    act(() => {
-      result.current.handleSearchSubmit({
-        preventDefault: () => {},
-      } as React.FormEvent);
     });
 
     expect(result.current.appliedQuery).toBe("FAQ");
@@ -94,12 +70,6 @@ describe("useTOCSearch", () => {
       result.current.handleSearchChange({
         target: { value: "FAQ" },
       } as React.ChangeEvent<HTMLInputElement>);
-    });
-
-    act(() => {
-      result.current.handleSearchSubmit({
-        preventDefault: () => {},
-      } as React.FormEvent);
     });
 
     expect(result.current.appliedQuery).toBe("FAQ");
@@ -122,12 +92,6 @@ describe("useTOCSearch", () => {
       } as React.ChangeEvent<HTMLInputElement>);
     });
 
-    act(() => {
-      result.current.handleSearchSubmit({
-        preventDefault: () => {},
-      } as React.FormEvent);
-    });
-
     expect(result.current.count).toBe(0);
     expect(result.current.filteredTree).toHaveLength(0);
   });
@@ -139,12 +103,6 @@ describe("useTOCSearch", () => {
       result.current.handleSearchChange({
         target: { value: "Installation" },
       } as React.ChangeEvent<HTMLInputElement>);
-    });
-
-    act(() => {
-      result.current.handleSearchSubmit({
-        preventDefault: () => {},
-      } as React.FormEvent);
     });
 
     expect(result.current.filteredTree).toHaveLength(1);
@@ -164,17 +122,24 @@ describe("useTOCSearch", () => {
       } as React.ChangeEvent<HTMLInputElement>);
     });
 
-    act(() => {
-      result.current.handleSearchSubmit({
-        preventDefault: () => {},
-      } as React.FormEvent);
-    });
-
     expect(result.current.filteredTree).toHaveLength(0);
 
     const newTree = [...tree, makeNode("d", "New Feature")];
     rerender({ tree: newTree });
 
     expect(result.current.count).toBe(1);
+  });
+
+  it("should prevent default on form submit without filtering", () => {
+    const { result } = renderHook(() => useTOCSearch(tree));
+    const preventDefault = vi.fn();
+
+    act(() => {
+      result.current.handleSearchSubmit({
+        preventDefault,
+      } as unknown as React.FormEvent);
+    });
+
+    expect(preventDefault).toHaveBeenCalled();
   });
 });

@@ -143,4 +143,28 @@ describe("useExpandedState", () => {
 
     expect(result.current.expandedIds.size).toBe(0);
   });
+
+  it("should auto-expand all parent nodes when searchActive is true", () => {
+    const { result } = renderHook(() => useExpandedState(null, tree, true));
+
+    expect(result.current.expandedIds.has("root1")).toBe(true);
+    expect(result.current.expandedIds.has("child1")).toBe(true);
+    // Leaf nodes should not be in expanded set
+    expect(result.current.expandedIds.has("grandchild1")).toBe(false);
+    expect(result.current.expandedIds.has("root2")).toBe(false);
+  });
+
+  it("should collapse nodes when searchActive becomes false", () => {
+    const { result, rerender } = renderHook(
+      ({ searchActive }) => useExpandedState(null, tree, searchActive),
+      { initialProps: { searchActive: true } }
+    );
+
+    expect(result.current.expandedIds.has("root1")).toBe(true);
+
+    rerender({ searchActive: false });
+
+    // The effect no longer runs, but existing state remains until toggled
+    expect(result.current.expandedIds.has("root1")).toBe(true);
+  });
 });

@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { TOCRow } from "./TOCRow";
@@ -32,6 +32,7 @@ export const ToC = () => {
   const flatNodes = useFlattenedTree(filteredTree, expandedIds);
 
   const scrollRef = useRef<HTMLUListElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const virtualizer = useVirtualizer({
     count: flatNodes.length,
@@ -83,6 +84,36 @@ export const ToC = () => {
     [flatNodes, virtualizer]
   );
 
+  const handleSearchKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        handleClear();
+        searchInputRef.current?.blur();
+      }
+    },
+    [handleClear]
+  );
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === "/" &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey &&
+        !(e.target instanceof HTMLInputElement) &&
+        !(e.target instanceof HTMLTextAreaElement)
+      ) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleGlobalKeyDown);
+    return () => document.removeEventListener("keydown", handleGlobalKeyDown);
+  }, []);
+
   if (isLoading) return <Loader />;
 
   if (error) {
@@ -102,11 +133,13 @@ export const ToC = () => {
         role="search"
       >
         <input
+          ref={searchInputRef}
           id="toc-search"
           type="text"
           placeholder="Search in TOC..."
           value={searchQuery}
           onChange={handleSearchChange}
+          onKeyDown={handleSearchKeyDown}
           className={styles.searchInput}
           aria-label="Search in table of contents"
         />

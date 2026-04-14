@@ -315,6 +315,20 @@
   padding: 0 1px;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+
+  .header,
+  .icon,
+  .searchInput,
+  .searchButton,
+  .clearButton {
+    transition: none;
+  }
+}
+
 /* High contrast mode */
 @media (prefers-contrast: high) {
   .tocContainer {

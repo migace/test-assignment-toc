@@ -37,9 +37,9 @@ We chose roving tabindex because:
 
 We use `vitest-axe` for automated accessibility audits alongside manual ARIA attribute assertions. Automated tools catch ~30% of accessibility issues; the remaining coverage comes from explicit assertions on roles, states, and keyboard behavior in both unit and E2E tests.
 
-### Why `useReducedMotion`
+### Why reduced-motion CSS fallbacks
 
-Framer Motion's `useReducedMotion` hook respects the user's `prefers-reduced-motion` OS setting. When enabled, all animations complete instantly (`duration: 0`), preventing motion sickness for vestibular disorder users.
+We respect the user's `prefers-reduced-motion` OS setting with CSS media queries. Non-essential motion (spinner animation and hover/icon transitions) is disabled in reduced-motion mode, which lowers vestibular risk without adding runtime dependencies.
 
 ## Consequences
 

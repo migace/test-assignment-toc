@@ -36,7 +36,7 @@ Full [WAI-ARIA Treeview Pattern](https://www.w3.org/WAI/ARIA/apd/patterns/treevi
 - **Roving tabindex**: Focus management without `aria-activedescendant`
 - **ARIA attributes**: `role="tree/treeitem"`, `aria-expanded`, `aria-selected`, `aria-level`, `aria-setsize`, `aria-posinset`
 - **Landmarks**: `role="search"`, `role="navigation"` with labels
-- **Reduced motion**: Respects `prefers-reduced-motion` via Framer Motion's `useReducedMotion`
+- **Reduced motion**: Respects `prefers-reduced-motion` by disabling non-essential CSS animations and transitions
 - **Dark mode**: Automatic via `prefers-color-scheme` with semantic CSS variables
 - **Automated audits**: `vitest-axe` tests + Lighthouse CI with 95% a11y threshold
 
@@ -48,7 +48,7 @@ Full [WAI-ARIA Treeview Pattern](https://www.w3.org/WAI/ARIA/apd/patterns/treevi
 | Build          | Vite 8                                                         |
 | Data fetching  | TanStack React Query                                           |
 | Virtualization | TanStack React Virtual                                         |
-| Animations     | Framer Motion                                                  |
+| Animations     | CSS transitions (icon state + loading spinner)                 |
 | Styling        | CSS Modules + CSS custom properties                            |
 | Validation     | Zod                                                            |
 | Unit tests     | Vitest + React Testing Library + vitest-axe                    |
@@ -59,6 +59,8 @@ Full [WAI-ARIA Treeview Pattern](https://www.w3.org/WAI/ARIA/apd/patterns/treevi
 | Quality        | ESLint + Prettier + Husky + lint-staged                        |
 
 ## Getting Started
+
+Package manager: `npm` (single lockfile strategy via `package-lock.json`).
 
 ### Prerequisites
 
@@ -107,7 +109,6 @@ src/
       utils/            — Tree filtering with tests
       TOC.tsx           — Main component (virtualizer, search, navigation)
       TOCRow.tsx        — Virtualized row (flat list rendering)
-      TOCItem.tsx       — Recursive tree item (non-virtualized, with animations)
       HighlightMatch.tsx — Search result highlighting
       constants.ts      — Shared layout constants
       *.test.tsx        — Colocated tests

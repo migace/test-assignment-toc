@@ -35,4 +35,4 @@ We chose **React `useTransition`** to wrap the `setAppliedQuery` state update.
 - Search input remains responsive regardless of tree size
 - `isPending` state drives a "Filtering results..." indicator
 - No debounce timer to tune or maintain
-- The approach is applied on form submit, not on every keystroke, giving explicit user control
+- The approach is applied on every keystroke; `useTransition` keeps typing responsive while filtering updates are scheduled as low priority

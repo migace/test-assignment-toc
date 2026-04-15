@@ -99,7 +99,14 @@ const TOCRowComponent = ({
       onKeyDown={handleKeyDown}
       onFocus={() => onFocusNode(node.id)}
       ref={(el) => {
-        if (isFocused && el) el.focus();
+        if (!isFocused || !el) return;
+        const active = document.activeElement;
+        if (
+          active instanceof HTMLInputElement ||
+          active instanceof HTMLTextAreaElement
+        )
+          return;
+        el.focus();
       }}
     >
       <div

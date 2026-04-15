@@ -47,10 +47,6 @@ export const useTOCSearch = (tree: TOCNode[]) => {
     []
   );
 
-  const handleSearchSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-  }, []);
-
   const handleClear = useCallback(() => {
     persistQuery("");
     setSearchQuery("");
@@ -66,7 +62,6 @@ export const useTOCSearch = (tree: TOCNode[]) => {
     filteredTree,
     count,
     handleSearchChange,
-    handleSearchSubmit,
     handleClear,
   };
 };

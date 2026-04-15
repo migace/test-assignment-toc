@@ -15,15 +15,11 @@ test.describe("Table of Contents", () => {
   test("should have a search form", async ({ page }) => {
     const searchInput = page.getByLabel("Search in table of contents");
     await expect(searchInput).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Search", exact: true })
-    ).toBeVisible();
   });
 
   test("should filter results when searching", async ({ page }) => {
     const searchInput = page.getByLabel("Search in table of contents");
     await searchInput.fill("Getting started");
-    await page.getByRole("button", { name: "Search", exact: true }).click();
 
     await expect(page.getByText(/Found \d+ result/)).toBeVisible();
   });
@@ -33,7 +29,6 @@ test.describe("Table of Contents", () => {
   }) => {
     const searchInput = page.getByLabel("Search in table of contents");
     await searchInput.fill("xyznonexistent123");
-    await page.getByRole("button", { name: "Search", exact: true }).click();
 
     await expect(page.getByText(/No results found/)).toBeVisible();
   });
@@ -41,7 +36,6 @@ test.describe("Table of Contents", () => {
   test("should clear search with clear button", async ({ page }) => {
     const searchInput = page.getByLabel("Search in table of contents");
     await searchInput.fill("test");
-    await page.getByRole("button", { name: "Search", exact: true }).click();
 
     await expect(page.getByText(/Found \d+ result/)).toBeVisible();
 
@@ -97,7 +91,6 @@ test.describe("Table of Contents", () => {
   test("should highlight search matches", async ({ page }) => {
     const searchInput = page.getByLabel("Search in table of contents");
     await searchInput.fill("Getting started");
-    await page.getByRole("button", { name: "Search", exact: true }).click();
 
     await expect(page.getByText(/Found \d+ result/)).toBeVisible();
 
@@ -231,7 +224,6 @@ test.describe("Search interaction", () => {
 
     const searchInput = page.getByLabel("Search in table of contents");
     await searchInput.fill("test");
-    await page.getByRole("button", { name: "Search", exact: true }).click();
 
     await expect(clearButton).toBeVisible();
   });
@@ -249,7 +241,6 @@ test.describe("Search interaction", () => {
   }) => {
     const searchInput = page.getByLabel("Search in table of contents");
     await searchInput.fill("Getting started");
-    await page.getByRole("button", { name: "Search", exact: true }).click();
 
     await expect(page.getByText(/Found \d+ result/)).toBeVisible();
 
@@ -260,7 +251,6 @@ test.describe("Search interaction", () => {
   test("should show correct result count", async ({ page }) => {
     const searchInput = page.getByLabel("Search in table of contents");
     await searchInput.fill("Getting started");
-    await page.getByRole("button", { name: "Search", exact: true }).click();
 
     const resultInfo = page.getByText(/Found \d+ result/);
     await expect(resultInfo).toBeVisible();

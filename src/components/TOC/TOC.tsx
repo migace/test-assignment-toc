@@ -23,7 +23,6 @@ export const ToC = () => {
     filteredTree,
     count,
     handleSearchChange,
-    handleSearchSubmit,
     handleClear,
   } = useTOCSearch(tree);
 
@@ -145,7 +144,7 @@ export const ToC = () => {
         Skip to table of contents
       </a>
       <form
-        onSubmit={handleSearchSubmit}
+        onSubmit={(e) => e.preventDefault()}
         className={styles.searchForm}
         role="search"
       >
@@ -160,9 +159,6 @@ export const ToC = () => {
           className={styles.searchInput}
           aria-label="Search in table of contents"
         />
-        <button type="submit" className={styles.searchButton}>
-          Search
-        </button>
         {(appliedQuery || searchQuery) && (
           <button
             type="button"
